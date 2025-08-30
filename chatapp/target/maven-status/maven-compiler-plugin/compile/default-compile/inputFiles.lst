@@ -1,0 +1,13 @@
+/home/saurabh-shukla/Desktop/Slack Lite/chatapp/src/main/java/org/example/util/JwtUtil.java
+/home/saurabh-shukla/Desktop/Slack Lite/chatapp/src/main/java/org/example/ChatappApplication.java
+/home/saurabh-shukla/Desktop/Slack Lite/chatapp/src/main/java/org/example/repository/UserRepository.java
+/home/saurabh-shukla/Desktop/Slack Lite/chatapp/src/main/java/org/example/dto/LoginResponse.java
+/home/saurabh-shukla/Desktop/Slack Lite/chatapp/src/main/java/org/example/entity/User.java
+/home/saurabh-shukla/Desktop/Slack Lite/chatapp/src/main/java/org/example/config/JwtAuthenticationFilter.java
+/home/saurabh-shukla/Desktop/Slack Lite/chatapp/src/main/java/org/example/dto/UserDto.java
+/home/saurabh-shukla/Desktop/Slack Lite/chatapp/src/main/java/org/example/dto/LoginRequest.java
+/home/saurabh-shukla/Desktop/Slack Lite/chatapp/src/main/java/org/example/controller/AuthController.java
+/home/saurabh-shukla/Desktop/Slack Lite/chatapp/src/main/java/org/example/controller/WelcomeController.java
+/home/saurabh-shukla/Desktop/Slack Lite/chatapp/src/main/java/org/example/service/UserService.java
+/home/saurabh-shukla/Desktop/Slack Lite/chatapp/src/main/java/org/example/dto/SignupRequest.java
+/home/saurabh-shukla/Desktop/Slack Lite/chatapp/src/main/java/org/example/config/SecurityConfig.java

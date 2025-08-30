@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        /* Your existing styles */
+    </style>
+
+    <script>alert("dashboard loading")</script>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1 class="welcome-text">Welcome, <span id="username">User</span>!</h1>
+        <button onclick="logout()" class="logout-btn">Logout</button>
+    </div>
+
+    <div class="content">
+        <h2>Dashboard</h2>
+        <p>You have successfully logged in to the system.</p>
+        <p>This is your dashboard where you can access your account features.</p>
+    </div>
+</div>
+
+<script>
+    // Load user data on page load
+
+    function logout() {
+        localStorage.removeItem('jwt');
+        window.location.href = '/login';
+    }
+
+   window.onload = function() {
+    const token = localStorage.getItem('jwt');
+
+    console.log("here"+token);
+    if (!token) {
+        window.location.href = '/login';
+        return;
+    }
+
+    try {
+        // Decode JWT payload to get username
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        document.getElementById('username').textContent = payload.sub || 'User';
+
+        // Optional: Check if token is expired
+
+    } catch (error) {
+        console.error('Invalid token:', error);
+        localStorage.removeItem('jwt');
+        window.location.href = '/login';
+    }
+};
+</script>
+</body>
+</html>
