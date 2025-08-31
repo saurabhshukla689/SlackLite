@@ -31,6 +31,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login", "/signup", "/api/auth/login", "/dashboard","/api/auth/signup","/css/**", "/js/**","/favicon.ico").permitAll()
+                        .requestMatchers("/graphql", "/graphiql/**").permitAll()
                         .requestMatchers( "/api/auth/verify").authenticated()
                         .anyRequest().authenticated()
                 )

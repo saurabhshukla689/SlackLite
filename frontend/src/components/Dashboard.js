@@ -1,17 +1,31 @@
 import React from 'react';
+import { useMutation, useQuery } from '@apollo/client/react';
+import { useNavigate } from 'react-router-dom';
+import { LOGOUT_MUTATION, GET_ME_QUERY } from '../graphql/queries';
 
-const Dashboard = ({ user }) => {
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('username');
-        window.location.reload();
+const Dashboard = () => {
+    const { data: userData, loading } = useQuery(GET_ME_QUERY);
+    const [logout] = useMutation(LOGOUT_MUTATION);
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            navigate('/login');
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
     };
+
+    if (loading) return <div>Loading...</div>;
 
     return (
         <div style={styles.container}>
             <div style={styles.dashboard}>
-                <h2>Welcome, {user.username}</h2>
-                <p>Login successful. Token received.</p>
+                <h2>Welcome, {userData?.me?.username}</h2>
+                <p>GraphQL Dashboard - Login successful!</p>
                 <button onClick={handleLogout} style={styles.logoutButton}>
                     Logout
                 </button>
