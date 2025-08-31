@@ -1,45 +1,38 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ApolloProvider } from '@apollo/client/react';
+import client from './apollo/client';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import authService from './services/authService';
+import ProtectedRoute from './components/ProtectedRoute';import {InMemoryCache, createHttpLink } from '@apollo/client/react';
+import { setContext } from '@apollo/client/link/context';
+
 
 function App() {
-    const [user, setUser] = useState(null);
-
-    useEffect(() => {
-
-        const token = localStorage.getItem('token');
-        const username = localStorage.getItem('username');
-
-        if (token && username) {
-            authService.validateToken(token)
-                .then(() => {
-                    setUser({ username, token });
-                })
-                .catch(() => {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('username');
-                })
-
-        }
-    }, []);
-
-    const handleLoginSuccess = (response) => {
-        setUser({
-            username: response.username,
-            token: response.token
-        });
-    };
-
-
     return (
-        <div className="App">
-            {user ? (
-                <Dashboard user={user} />
-            ) : (
-                <Login onLoginSuccess={handleLoginSuccess} />
-            )}
-        </div>
+        <ApolloProvider client={client}>
+            <Router>
+                <div className="App">
+                    <Routes>
+                        {/* Public Routes */}
+                        <Route path="/login" element={<Login />} />
+
+                        {/* Protected Routes */}
+                        <Route
+                            path="/dashboard"
+                            element={
+                                <ProtectedRoute>
+                                    <Dashboard />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        {/* Default redirect */}
+                        <Route path="/" element={<Navigate to="/login" />} />
+                    </Routes>
+                </div>
+            </Router>
+        </ApolloProvider>
     );
 }
 

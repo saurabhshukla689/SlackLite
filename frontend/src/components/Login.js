@@ -1,86 +1,59 @@
 import React, { useState } from 'react';
-import authService from '../services/authService';
+import { useMutation } from '@apollo/client/react';
+import { useNavigate } from 'react-router-dom';
+import { LOGIN_MUTATION } from '../graphql/queries';
 
-const Login = ({ onLoginSuccess }) => {
-    const [formData, setFormData] = useState({
-        username: '',
-        password: ''
-    });
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-    };
+const Login = () => {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [login, { loading, error }] = useMutation(LOGIN_MUTATION);
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
-        setError('');
-
         try {
-            const response = await authService.login(formData.username, formData.password);
+            const { data } = await login({
+                variables: { username, password }
+            });
 
-            if (response.token) {
-                // Store token in localStorage
-                localStorage.setItem('token', response.token);
-                localStorage.setItem('username', response.username);
+            // Store token and user data
 
-                onLoginSuccess(response);
-            } else {
-                setError(response.message || 'Login failed');
-            }
+
+            localStorage.setItem('token', data.login.token);
+            localStorage.setItem('user', JSON.stringify(data.login.user));
+
+            // Redirect to dashboard
+            navigate('/dashboard');
         } catch (err) {
-            setError(typeof err === 'string' ? err : 'Login failed');
-        } finally {
-            setLoading(false);
+            console.error('Login failed:', err);
         }
     };
 
     return (
         <div style={styles.container}>
-            <div style={styles.loginForm}>
-                <h2>Login</h2>
-
-                <form onSubmit={handleSubmit}>
-                    <div style={styles.formGroup}>
-                        <label>Username:</label>
-                        <input
-                            type="text"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleChange}
-                            required
-                            style={styles.input}
-                        />
-                    </div>
-
-                    <div style={styles.formGroup}>
-                        <label>Password:</label>
-                        <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            required
-                            style={styles.input}
-                        />
-                    </div>
-
-                    {error && <div style={styles.error}>{error}</div>}
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        style={styles.button}
-                    >
-                        {loading ? 'Logging in...' : 'Login'}
-                    </button>
-                </form>
-            </div>
+            <form onSubmit={handleSubmit} style={styles.form}>
+                <h2>SlackLite Login</h2>
+                <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Username"
+                    style={styles.input}
+                    required
+                />
+                <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Password"
+                    style={styles.input}
+                    required
+                />
+                <button type="submit" disabled={loading} style={styles.button}>
+                    {loading ? 'Logging in...' : 'Login'}
+                </button>
+                {error && <p style={styles.error}>{error.message}</p>}
+            </form>
         </div>
     );
 };
@@ -93,38 +66,32 @@ const styles = {
         minHeight: '100vh',
         backgroundColor: '#f5f5f5'
     },
-    loginForm: {
+    form: {
         backgroundColor: 'white',
         padding: '2rem',
         borderRadius: '8px',
         boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
         width: '300px'
     },
-    formGroup: {
-        marginBottom: '1rem'
-    },
     input: {
         width: '100%',
         padding: '0.5rem',
-        marginTop: '0.25rem',
+        margin: '0.5rem 0',
         border: '1px solid #ddd',
-        borderRadius: '4px',
-        fontSize: '1rem'
+        borderRadius: '4px'
     },
     button: {
         width: '100%',
-        padding: '0.75rem',
+        padding: '0.5rem',
         backgroundColor: '#007bff',
         color: 'white',
         border: 'none',
         borderRadius: '4px',
-        fontSize: '1rem',
         cursor: 'pointer'
     },
     error: {
         color: 'red',
-        marginBottom: '1rem',
-        textAlign: 'center'
+        marginTop: '1rem'
     }
 };
 
