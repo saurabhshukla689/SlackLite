@@ -5,14 +5,17 @@ import org.example.authservice.entity.User;
 import org.example.authservice.dto.AuthPayload;
 import org.example.authservice.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.graphql.data.federation.EntityMapping;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Controller
 public class UserResolver {
@@ -26,6 +29,14 @@ public class UserResolver {
             return null;
         }
         return userService.findByUsername(authentication.getName());
+    }
+
+
+
+
+    @EntityMapping
+    public Optional<User> user(@Argument UUID id) {
+        return userService.findByUserId(id);
     }
 
     @QueryMapping

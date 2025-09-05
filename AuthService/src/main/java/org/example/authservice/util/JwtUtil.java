@@ -5,14 +5,14 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.example.authservice.entity.User;
+import org.example.authservice.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 @Component
@@ -20,6 +20,8 @@ public class JwtUtil {
 
     private final String SECRET_KEY = "mySecretKey123456789012345678901234567890";
     private final int JWT_EXPIRATION = 86400000; // 24 hours
+
+
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
@@ -38,7 +40,7 @@ public class JwtUtil {
         return claimsResolver.apply(claims);
     }
 
-    private Claims extractAllClaims(String token) {
+    public Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .setSigningKey(getSigningKey())
                 .build()
@@ -50,15 +52,21 @@ public class JwtUtil {
         return extractExpiration(token).before(new Date());
     }
 
-    public String generateToken(String username) {
+    public String generateToken(UUID id,String username,String email) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, username);
+        claims.put("id", id);
+        claims.put("username", username);
+        claims.put("email", email);
+
+
+        return createToken(claims, id);
     }
 
-    private String createToken(Map<String, Object> claims, String subject) {
+    private String createToken(Map<String, Object> claims, UUID subject) {
+
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(subject)
+                .setSubject(subject.toString())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
