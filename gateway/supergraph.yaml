@@ -1,0 +1,11 @@
+# supergraph.yaml  (Rover compose config)
+federation_version: 2
+subgraphs:
+  auth:
+    routing_url: http://localhost:8081/graphql
+    schema:
+      subgraph_url: http://localhost:8081/graphql
+  channel:
+    routing_url: http://localhost:8082/graphql
+    schema:
+      subgraph_url: http://localhost:8082/graphql

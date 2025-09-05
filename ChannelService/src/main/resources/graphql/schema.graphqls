@@ -1,0 +1,84 @@
+type User @key(fields: "id") {
+    id: ID!
+    channels: [Channel!]!
+}
+
+
+#type User @key(fields: "id") {
+#    id: ID!
+#    channels: [Channel!]!
+#}
+
+
+type Channel @key(fields: "id"){
+    id: ID!
+    name: String!
+    description: String
+    isPrivate: Boolean!
+    createdBy: ID!
+    createdByUser: User!
+    createdAt: String!
+    updatedAt: String!
+    memberCount: Int!
+    members: [ChannelMember!]!
+}
+
+type ChannelMember {
+    id: ID!
+    userId: ID!
+    user: User!
+    channelId: ID!
+    role: Role!
+    joinedAt: String!
+    lastReadMessageId: ID
+}
+
+enum Role {
+    ADMIN
+    MODERATOR
+    MEMBER
+}
+
+input CreateChannelInput {
+    name: String!
+    description: String
+    isPrivate: Boolean = false
+}
+
+input UpdateChannelInput {
+    name: String
+    description: String
+    isPrivate: Boolean
+}
+
+type Query {
+    # Get all channels user has access to
+    channels: [Channel!]!
+
+    # Get specific channel
+    channel(id: ID!): Channel
+
+    # Get public channels (for discovery)
+    publicChannels: [Channel!]!
+
+    # Get channel members
+    channelMembers(channelId: ID!): [ChannelMember!]!
+
+    # Permission checks
+    canUserJoinChannel(channelId: ID!): Boolean!
+    canUserSendMessage(channelId: ID!): Boolean!
+}
+
+type Mutation {
+    # Channel CRUD
+    createChannel(input: CreateChannelInput!): Channel!
+    updateChannel(id: ID!, input: UpdateChannelInput!): Channel!
+    deleteChannel(id: ID!): Boolean!
+
+    # Membership management
+    joinChannel(channelId: ID!): ChannelMember!
+    leaveChannel(channelId: ID!): Boolean!
+    inviteToChannel(channelId: ID!, userId: ID!): ChannelMember!
+    removeFromChannel(channelId: ID!, userId: ID!): Boolean!
+    updateMemberRole(channelId: ID!, userId: ID!, role: Role!): ChannelMember!
+}

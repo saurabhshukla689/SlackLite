@@ -1,0 +1,161 @@
+schema
+  @link(url: "https://specs.apollo.dev/link/v1.0")
+  @link(url: "https://specs.apollo.dev/join/v0.3", for: EXECUTION)
+{
+  query: Query
+  mutation: Mutation
+}
+
+directive @join__enumValue(graph: join__Graph!) repeatable on ENUM_VALUE
+
+directive @join__field(graph: join__Graph, requires: join__FieldSet, provides: join__FieldSet, type: String, external: Boolean, override: String, usedOverridden: Boolean) repeatable on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+directive @join__graph(name: String!, url: String!) on ENUM_VALUE
+
+directive @join__implements(graph: join__Graph!, interface: String!) repeatable on OBJECT | INTERFACE
+
+directive @join__type(graph: join__Graph!, key: join__FieldSet, extension: Boolean! = false, resolvable: Boolean! = true, isInterfaceObject: Boolean! = false) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR
+
+directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on UNION
+
+directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
+
+type AuthPayload
+  @join__type(graph: AUTH)
+{
+  token: String!
+  user: User!
+}
+
+"""
+type User @key(fields: "id") {
+    id: ID!
+    channels: [Channel!]!
+}
+"""
+type Channel
+  @join__type(graph: CHANNEL, key: "id")
+{
+  createdAt: String!
+  createdBy: ID!
+  createdByUser: User!
+  description: String
+  id: ID!
+  isPrivate: Boolean!
+  memberCount: Int!
+  members: [ChannelMember!]!
+  name: String!
+  updatedAt: String!
+}
+
+type ChannelMember
+  @join__type(graph: CHANNEL)
+{
+  channelId: ID!
+  id: ID!
+  joinedAt: String!
+  lastReadMessageId: ID
+  role: Role!
+  user: User!
+  userId: ID!
+}
+
+input CreateChannelInput
+  @join__type(graph: CHANNEL)
+{
+  description: String
+  isPrivate: Boolean = false
+  name: String!
+}
+
+scalar join__FieldSet
+
+enum join__Graph {
+  AUTH @join__graph(name: "auth", url: "http://localhost:8081/graphql")
+  CHANNEL @join__graph(name: "channel", url: "http://localhost:8082/graphql")
+}
+
+scalar link__Import
+
+enum link__Purpose {
+  """
+  `SECURITY` features provide metadata necessary to securely resolve fields.
+  """
+  SECURITY
+
+  """
+  `EXECUTION` features provide metadata necessary for operation execution.
+  """
+  EXECUTION
+}
+
+type Mutation
+  @join__type(graph: AUTH)
+  @join__type(graph: CHANNEL)
+{
+  login(password: String!, username: String!): AuthPayload! @join__field(graph: AUTH)
+  logout: Boolean! @join__field(graph: AUTH)
+  register(email: String, password: String!, username: String!): AuthPayload! @join__field(graph: AUTH)
+
+  """ Channel CRUD"""
+  createChannel(input: CreateChannelInput!): Channel! @join__field(graph: CHANNEL)
+  deleteChannel(id: ID!): Boolean! @join__field(graph: CHANNEL)
+  inviteToChannel(channelId: ID!, userId: ID!): ChannelMember! @join__field(graph: CHANNEL)
+
+  """ Membership management"""
+  joinChannel(channelId: ID!): ChannelMember! @join__field(graph: CHANNEL)
+  leaveChannel(channelId: ID!): Boolean! @join__field(graph: CHANNEL)
+  removeFromChannel(channelId: ID!, userId: ID!): Boolean! @join__field(graph: CHANNEL)
+  updateChannel(id: ID!, input: UpdateChannelInput!): Channel! @join__field(graph: CHANNEL)
+  updateMemberRole(channelId: ID!, role: Role!, userId: ID!): ChannelMember! @join__field(graph: CHANNEL)
+}
+
+type Query
+  @join__type(graph: AUTH)
+  @join__type(graph: CHANNEL)
+{
+  me: User @join__field(graph: AUTH)
+  users: [User!]! @join__field(graph: AUTH)
+
+  """ Permission checks"""
+  canUserJoinChannel(channelId: ID!): Boolean! @join__field(graph: CHANNEL)
+  canUserSendMessage(channelId: ID!): Boolean! @join__field(graph: CHANNEL)
+
+  """ Get specific channel"""
+  channel(id: ID!): Channel @join__field(graph: CHANNEL)
+
+  """ Get channel members"""
+  channelMembers(channelId: ID!): [ChannelMember!]! @join__field(graph: CHANNEL)
+
+  """ Get all channels user has access to"""
+  channels: [Channel!]! @join__field(graph: CHANNEL)
+
+  """ Get public channels (for discovery)"""
+  publicChannels: [Channel!]! @join__field(graph: CHANNEL)
+}
+
+enum Role
+  @join__type(graph: CHANNEL)
+{
+  ADMIN @join__enumValue(graph: CHANNEL)
+  MEMBER @join__enumValue(graph: CHANNEL)
+  MODERATOR @join__enumValue(graph: CHANNEL)
+}
+
+input UpdateChannelInput
+  @join__type(graph: CHANNEL)
+{
+  description: String
+  isPrivate: Boolean
+  name: String
+}
+
+type User
+  @join__type(graph: AUTH, key: "id")
+  @join__type(graph: CHANNEL, key: "id")
+{
+  email: String @join__field(graph: AUTH)
+  id: ID!
+  username: String! @join__field(graph: AUTH)
+  channels: [Channel!]! @join__field(graph: CHANNEL)
+}

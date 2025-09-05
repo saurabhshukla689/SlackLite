@@ -1,0 +1,42 @@
+# src/main/resources/application.yml
+server:
+  port: 4000  # ? Changed from 3000 to 4000
+
+spring:
+  application:
+    name: slacklite-gateway
+  
+  graphql:
+    graphiql:
+      enabled: true
+      path: /graphiql
+
+# Federated Services Configuration
+federation:
+  services:
+    auth-service:
+      name: "auth-service"
+      url: "http://localhost:8081/graphql"
+
+    channel-service:
+      name: "channel-service"
+      url: "http://localhost:8082/graphql"
+
+    message-service:
+      name: "message-service"
+      url: "http://localhost:8083/graphql"
+
+jwt:
+  secret: your-super-secret-jwt-key-here
+
+# CORS - Allow React app on port 3000
+cors:
+  allowed-origins:
+    - http://localhost:3000  # ? React app
+
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: "*"
+
+logging:
+  level:
+    com.slacklite.gateway: DEBUG
