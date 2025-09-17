@@ -46,7 +46,7 @@ public class ChannelResolver {
 
     @EntityMapping
     public User user(@Argument String id) {
-        System.out.println("🔗 Channel Service: Creating User reference for id: " + id);
+        System.out.println("Channel Service: Creating User reference for id: " + id);
         // This is just a reference for federation - don't fetch from database
         // The actual User data will be resolved by the User service
         User user = new User();

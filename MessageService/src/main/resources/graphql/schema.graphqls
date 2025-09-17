@@ -1,0 +1,91 @@
+
+enum MessageType {
+    TEXT
+    IMAGE
+    FILE
+}
+
+
+ type User {
+    id: ID!
+}
+
+
+type Channel{
+    id: ID!
+}
+
+input SendMessageInput {
+    channelId: ID!
+    content: String!
+    messageType: MessageType = TEXT
+    fileUrl: String
+    replyTo: ID
+}
+
+input UpdateMessageInput {
+    messageId: ID
+    content: String!
+    updateUserId: ID!
+}
+
+input DeleteMessageInput {
+    messageId: ID
+    deleteUserId: ID!
+}
+# Main Message type
+type Message {
+    id: ID!
+    user: User
+    channel: Channel!
+    content: String!
+    channelId: ID!
+    userId: ID!
+    messageType: MessageType!
+    fileUrl: String
+    replyToMessageId: ID
+    replyTo: Message
+    createdAt: String!
+    updatedAt: String
+    isDeleted: Boolean!
+    replies: [Message!]!
+}
+
+# Connection types for pagination
+type MessageConnection {
+    edges: [MessageEdge!]!
+    pageInfo: PageInfo!
+    totalCount: Int!
+}
+
+type MessageEdge {
+    node: Message!
+    cursor: String!
+}
+
+type PageInfo {
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    startCursor: String
+    endCursor: String
+}
+
+# Query type - only define once!
+type Query {
+    # Using consistent parameter names
+    messages(
+        channelId: ID!
+        first: Int = 50
+        after: String
+        last: Int
+        before: String
+    ): MessageConnection!
+    message(id: ID!): Message
+}
+
+# Mutation type
+type Mutation {
+    sendMessage(input: SendMessageInput!): Message!
+    updateMessage(input: UpdateMessageInput): Message!
+    deleteMessage(input: DeleteMessageInput): Boolean!
+}

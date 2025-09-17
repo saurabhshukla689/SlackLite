@@ -18,22 +18,16 @@ public interface ChannelMemberRepository extends JpaRepository<ChannelMember, Ch
 
     ChannelMember findById(UUID userId)   ;
 
-    // Find all members of a channel
     List<ChannelMember> findByChannelIdOrderByJoinedAtAsc(UUID channelId);
 
-    // Find specific membership
     Optional<ChannelMember> findByUserIdAndChannelId(UUID userId, UUID channelId);
 
-    // Check if user is member
     boolean existsByUserIdAndChannelId(UUID userId, UUID channelId);
 
-    // Check if user has specific role
     boolean existsByUserIdAndChannelIdAndRole(UUID userId, UUID channelId, Role role);
 
-    // Count members in channel
     long countByChannelId(UUID channelId);
 
-    // Find user's channels with specific role
     @Query("SELECT cm FROM ChannelMember cm WHERE cm.userId = :userId AND cm.role = :role")
     List<ChannelMember> findByUserIdAndRole(@Param("userId") UUID userId, @Param("role") Role role);
 }
