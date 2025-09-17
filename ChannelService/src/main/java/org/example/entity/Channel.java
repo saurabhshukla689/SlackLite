@@ -28,9 +28,6 @@ public class Channel {
     @Column(name = "is_private", nullable = false)
     private Boolean isPrivate = false;
 
-//    @ManyToOne(optional = false)
-//    @JoinColumn(name = "created_by", nullable = false)
-//    private ChannelMember createdBy;
 
     public UUID getCreatedByUserId() {
         return createdByUserId;

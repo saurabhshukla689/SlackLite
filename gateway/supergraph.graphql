@@ -35,17 +35,18 @@ type User @key(fields: "id") {
 """
 type Channel
   @join__type(graph: CHANNEL, key: "id")
+  @join__type(graph: MESSAGE)
 {
-  createdAt: String!
-  createdBy: ID!
-  createdByUser: User!
-  description: String
+  createdAt: String! @join__field(graph: CHANNEL)
+  createdBy: ID! @join__field(graph: CHANNEL)
+  createdByUser: User! @join__field(graph: CHANNEL)
+  description: String @join__field(graph: CHANNEL)
   id: ID!
-  isPrivate: Boolean!
-  memberCount: Int!
-  members: [ChannelMember!]!
-  name: String!
-  updatedAt: String!
+  isPrivate: Boolean! @join__field(graph: CHANNEL)
+  memberCount: Int! @join__field(graph: CHANNEL)
+  members: [ChannelMember!]! @join__field(graph: CHANNEL)
+  name: String! @join__field(graph: CHANNEL)
+  updatedAt: String! @join__field(graph: CHANNEL)
 }
 
 type ChannelMember
@@ -68,11 +69,19 @@ input CreateChannelInput
   name: String!
 }
 
+input DeleteMessageInput
+  @join__type(graph: MESSAGE)
+{
+  deleteUserId: ID!
+  messageId: ID
+}
+
 scalar join__FieldSet
 
 enum join__Graph {
   AUTH @join__graph(name: "auth", url: "http://localhost:8081/graphql")
   CHANNEL @join__graph(name: "channel", url: "http://localhost:8082/graphql")
+  MESSAGE @join__graph(name: "message", url: "http://localhost:8083/graphql")
 }
 
 scalar link__Import
@@ -89,13 +98,59 @@ enum link__Purpose {
   EXECUTION
 }
 
+""" Main Message type"""
+type Message
+  @join__type(graph: MESSAGE)
+{
+  channel: Channel!
+  channelId: ID!
+  content: String!
+  createdAt: String!
+  fileUrl: String
+  id: ID!
+  isDeleted: Boolean!
+  messageType: MessageType!
+  replies: [Message!]!
+  replyTo: Message
+  replyToMessageId: ID
+  updatedAt: String
+  user: User!
+  userId: ID!
+}
+
+""" Connection types for pagination"""
+type MessageConnection
+  @join__type(graph: MESSAGE)
+{
+  edges: [MessageEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MessageEdge
+  @join__type(graph: MESSAGE)
+{
+  cursor: String!
+  node: Message!
+}
+
+enum MessageType
+  @join__type(graph: MESSAGE)
+{
+  FILE @join__enumValue(graph: MESSAGE)
+  IMAGE @join__enumValue(graph: MESSAGE)
+  TEXT @join__enumValue(graph: MESSAGE)
+}
+
+""" Mutation type"""
 type Mutation
   @join__type(graph: AUTH)
   @join__type(graph: CHANNEL)
+  @join__type(graph: MESSAGE)
 {
   login(password: String!, username: String!): AuthPayload! @join__field(graph: AUTH)
   logout: Boolean! @join__field(graph: AUTH)
-  register(email: String, password: String!, username: String!): AuthPayload! @join__field(graph: AUTH)
+  register(email: String, password: String!, username: String!): Boolean! @join__field(graph: AUTH)
 
   """ Channel CRUD"""
   createChannel(input: CreateChannelInput!): Channel! @join__field(graph: CHANNEL)
@@ -108,11 +163,25 @@ type Mutation
   removeFromChannel(channelId: ID!, userId: ID!): Boolean! @join__field(graph: CHANNEL)
   updateChannel(id: ID!, input: UpdateChannelInput!): Channel! @join__field(graph: CHANNEL)
   updateMemberRole(channelId: ID!, role: Role!, userId: ID!): ChannelMember! @join__field(graph: CHANNEL)
+  deleteMessage(input: DeleteMessageInput): Boolean! @join__field(graph: MESSAGE)
+  sendMessage(input: SendMessageInput!): Message! @join__field(graph: MESSAGE)
+  updateMessage(input: UpdateMessageInput): Message! @join__field(graph: MESSAGE)
 }
 
+type PageInfo
+  @join__type(graph: MESSAGE)
+{
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+""" Query type - only define once!"""
 type Query
   @join__type(graph: AUTH)
   @join__type(graph: CHANNEL)
+  @join__type(graph: MESSAGE)
 {
   me: User @join__field(graph: AUTH)
   users: [User!]! @join__field(graph: AUTH)
@@ -132,6 +201,10 @@ type Query
 
   """ Get public channels (for discovery)"""
   publicChannels: [Channel!]! @join__field(graph: CHANNEL)
+  message(id: ID!): Message @join__field(graph: MESSAGE)
+
+  """ Using consistent parameter names"""
+  messages(after: String, before: String, channelId: ID!, first: Int = 50, last: Int): MessageConnection! @join__field(graph: MESSAGE)
 }
 
 enum Role
@@ -142,6 +215,16 @@ enum Role
   MODERATOR @join__enumValue(graph: CHANNEL)
 }
 
+input SendMessageInput
+  @join__type(graph: MESSAGE)
+{
+  channelId: ID!
+  content: String!
+  fileUrl: String
+  messageType: MessageType = TEXT
+  replyTo: ID
+}
+
 input UpdateChannelInput
   @join__type(graph: CHANNEL)
 {
@@ -150,9 +233,18 @@ input UpdateChannelInput
   name: String
 }
 
+input UpdateMessageInput
+  @join__type(graph: MESSAGE)
+{
+  content: String!
+  messageId: ID
+  updateUserId: ID!
+}
+
 type User
   @join__type(graph: AUTH, key: "id")
   @join__type(graph: CHANNEL, key: "id")
+  @join__type(graph: MESSAGE)
 {
   email: String @join__field(graph: AUTH)
   id: ID!

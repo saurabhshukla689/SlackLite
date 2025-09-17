@@ -28,7 +28,7 @@ public class UserResolver {
         if (authentication == null) {
             return null;
         }
-        return userService.findByUsername(authentication.getName());
+        return userService.findByUserId(UUID.fromString(authentication.getPrincipal().toString()));
     }
 
 
